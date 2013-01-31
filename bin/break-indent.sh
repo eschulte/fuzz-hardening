@@ -16,20 +16,16 @@ make_fuzz(){
     $FUZZ -s $SEED -o $output -a >/dev/null 2>/dev/null;
     echo $output; }
 
-echo -n "checking $TRIALS variants"
 for SEED in $(seq $TRIALS);do
     FUZZ_FILE=$(make_fuzz $SEED)
     $FUZZ_TEST $VARIANT $FUZZ_FILE >/dev/null 2>/dev/null
     RESULT=$?
     if [ $RESULT -gt 1 ];then
-        echo ""
         echo "$FUZZ_FILE $RESULT"
         exit 0
         break
     else
-        echo -n "."
         rm $FUZZ_FILE
     fi
 done
-echo ""
 exit 1
