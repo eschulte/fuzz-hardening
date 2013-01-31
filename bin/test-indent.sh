@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Usage: indent-test.sh [indent-variant]
+# Usage: test-indent.sh [indent-variant]
 # Test the indent executable on known good tests.
 #
 VARIANT=$1
