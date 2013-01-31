@@ -8,7 +8,7 @@ BASE=$(dirname $0)
 FUZZ=$(dirname $0)/fuzz
 FUZZ_TEST=$(dirname $0)/test-fuzz.sh
 FUZZ_SIZE=1024 # 4096
-TRIALS=1000
+TRIALS=10000
 
 make_fuzz(){
     local SEED=$1; local output=$(mktemp);
