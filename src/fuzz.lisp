@@ -7,6 +7,9 @@
 (defvar *test* "../../bin/test-indent.sh"
   "The indent test script with fuzzing.")
 
+(defvar *fuzz-test* "../../test-fuzz.sh"
+  "Script to run a variant on a fuzz file.")
+
 (defvar *fuzz* "../../bin/break-indent.sh"
   "Script to break indent with fuzzing.")
 
@@ -16,7 +19,7 @@
 (defvar *work-dir* "sh-runner/work/"
   "Needed because SBCL chokes after too many shell outs.")
 
-(setf *max-population-size* (expt 2 7))
+(setf *max-population-size* (expt 2 8))
 
 (setf *tournament-size* 2)
 
@@ -45,7 +48,7 @@
     (or (ignore-errors
           (phenome variant :bin file)
           (multiple-value-bind (stdout stderr exit)
-              (shell "~a ~a ~a 2>&1" *test* file fuzz-file)
+              (shell "~a ~a ~a 2>&1" *fuzz-test* file fuzz-file)
             (declare (ignorable stderr))
             (if (zerop exit) 5)))
         0)))
@@ -56,7 +59,10 @@
      (fuzz-tests variant fuzz-file)))
 
 (defmethod harden ((variant cil))
+  (format t "fuzzing ~S~%" variant)
   (multiple-value-bind (fuzz-file errno) (fuzz variant)
+    (format t "found fuzz ~S(~d)~%" fuzz-file errno)
+    (shell "cp ~a ../../" fuzz-file)
     (evolve {test fuzz-file} :max-fit 10)))
 
 ;; Run -- this will just run forever
@@ -67,4 +73,5 @@
   (let ((best (copy *orig*)))
     (loop :for i :upfrom 0 :do
        (setf best (harden best))
+       (format t "found fix ~S~%" (edits best))
        (store *population* (format nil "pop-~d.store" i)))))
