@@ -65,6 +65,13 @@
     (shell "cp ~a ../../" fuzz-file)
     (evolve {test fuzz-file} :max-fit 10)))
 
+;; TODO: rather than the below, implement a multi-threaded solution
+;;  - 1 population
+;;  - many threads of (new -> test -> incorporate -> evict)
+;;  - fitness cached in functions *not* saved w/individual
+;;  - the test functions themselves note passing fuzzes and trigger a re-fuzz
+;;  - accumulate collected fuzz tests, best passing individuals and pop
+
 ;; Run -- this will just run forever
 #+run
 (progn
