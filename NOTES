@@ -1,0 +1,35 @@
+#                                                          -*- org -*-
+
+* TODO errors running on real
+: fuzzing #<CIL {102DFE18E3}>
+: found fuzz "/tmp/tmp.xNVHStOJzl"(137)
+: Caught a weird error: #<END-OF-FILE {1002AB54F3}>
+: Caught a weird error: #<END-OF-FILE {1002CAD753}>
+: Caught a weird error: #<END-OF-FILE {1002A25173}>
+: Caught a weird error: #<END-OF-FILE {1002A2D753}>
+: Caught a weird error: #<END-OF-FILE {1002B3D753}>
+: Caught a weird error: #<END-OF-FILE {1002AD5753}>
+: Caught a weird error: #<END-OF-FILE {1002A85173}>
+: Caught a weird error: #<END-OF-FILE {1002B35173}>
+: Caught a weird error: #<END-OF-FILE {1002A1E603}>
+: Caught a weird error: #<END-OF-FILE {1002B75753}>
+: fuzzing NIL
+: 
+: debugger invoked on a SIMPLE-ERROR in thread
+: #<THREAD "main thread" RUNNING {10029C8F53}>:
+:   There is no applicable method for the generic function
+:     #<STANDARD-GENERIC-FUNCTION FUZZ (1)>
+:   when called with arguments
+:     (NIL).
+: 
+: Type HELP for debugger help, or (SB-EXT:EXIT) to exit from SBCL.
+: 
+: restarts (invokable by number or by possibly-abbreviated name):
+:   0: [RETRY] Retry calling the generic function.
+:   1: [ABORT] Exit debugger, returning to top level.
+: 
+: ((SB-PCL::FAST-METHOD NO-APPLICABLE-METHOD (T))
+:  #<unused argument>
+:  #<unused argument>
+:  #<STANDARD-GENERIC-FUNCTION FUZZ (1)>
+:  NIL)
