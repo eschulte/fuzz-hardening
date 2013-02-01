@@ -58,12 +58,25 @@
   (+ (positive-tests variant)
      (fuzz-tests variant fuzz-file)))
 
+(defvar *best* nil
+  "Will hold that which defaults the fuzz.")
+
+(defmacro prepeatedly (n &body body)
+  "Return the result of running BODY N times in parallel."
+  (let ((loop-sym (gensym))
+        (result-sym (gensym)))
+    `(let ((,result-sym (loop :for ,loop-sym :upto ,n :collect (pexec ,@body))))
+       (map-into ,result-sym #'yield ,result-sym))))
+
 (defmethod harden ((variant cil))
   (format t "fuzzing ~S~%" variant)
   (multiple-value-bind (fuzz-file errno) (fuzz variant)
     (format t "found fuzz ~S(~d)~%" fuzz-file errno)
     (shell "cp ~a ../../" fuzz-file)
-    (evolve {test fuzz-file} :max-fit 10)))
+    (prepeatedly 46
+      (setf *best* (evolve {test fuzz-file} :max-fit 10))
+      (setf *running* nil))
+    *best*))
 
 ;; TODO: rather than the below, implement a multi-threaded solution
 ;;  - 1 population
@@ -75,10 +88,16 @@
 ;; Run -- this will just run forever
 #+run
 (progn
-  (setf (fitness *orig*) (positive-tests *orig*))
-  (setf *population* (repeatedly *max-population-size* (copy *orig*)))
-  (let ((best (copy *orig*)))
-    (loop :for i :upfrom 0 :do
-       (setf best (harden best))
-       (format t "found fix ~S~%" (edits best))
+  (setf *best* *orig*)
+  (loop :for i :upfrom 0 :do
+     (format t "fuzzing ~S~%" *best*)
+     (multiple-value-bind (fuzz-file errno) (fuzz variant)
+       (format t "found fuzz ~S(~d)~%" fuzz-file errno)
+       (shell "cp ~a ../../fuzz-~d" fuzz-file i)
+       (setf (fitness *best*) (test fuzz-file *best*))
+       (setf *population* (repeatedly *max-population-size* (copy *best*)))
+       (prepeatedly 46
+         (setf *best* (evolve {test fuzz-file} :max-fit 10))
+         (setf *running* nil))
+       (store *best* (format nil "best-~d.store" i))
        (store *population* (format nil "pop-~d.store" i)))))
