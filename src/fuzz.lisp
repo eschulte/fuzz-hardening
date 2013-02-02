@@ -1,6 +1,9 @@
+(require :software-evolution)
 (in-package :software-evolution)
-(use-package :cl-ppcre)
-(use-package :curry-compose-reader-macros)
+(mapc (lambda (pkg) (require pkg) (use-package pkg))
+      '(:cl-ppcre
+        :curry-compose-reader-macros
+        :eager-future2))
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (enable-curry-compose-reader-macros))
 
@@ -13,17 +16,18 @@
 (defvar *fuzz* "../../bin/break-indent.sh"
   "Script to break indent with fuzzing.")
 
-(defvar *orig* (from-file (make-instance 'cil) "indent/indent_comb.c")
+;; (from-file (make-instance 'cil) "indent/indent_comb.c")
+(defvar *orig* (from-file (make-instance 'asm) "indent_comb.s")
   "The original program.")
 
 (defvar *work-dir* "sh-runner/work/"
   "Needed because SBCL chokes after too many shell outs.")
 
-(setf *max-population-size* (expt 2 8))
+(setf *max-population-size* (expt 2 10))
 
 (setf *tournament-size* 2)
 
-(defmethod fuzz ((variant cil))
+(defmethod fuzz ((variant software))
   (with-temp-file (file)
     (phenome variant :bin file)
     (multiple-value-bind (stdout stderr exit)
@@ -32,7 +36,7 @@
       (bind (((fuzz err-str) (split-sequence #\Space stdout)))
         (values fuzz (parse-number err-str))))))
 
-(defmethod positive-tests ((variant cil))
+(defmethod positive-tests ((variant software))
   (with-temp-file (file)
     (or (ignore-errors
           (phenome variant :bin file)
@@ -43,7 +47,7 @@
               (parse-number stdout))))
         0)))
 
-(defmethod fuzz-tests ((variant cil) fuzz-file)
+(defmethod fuzz-tests ((variant software) fuzz-file)
   (with-temp-file (file)
     (or (ignore-errors
           (phenome variant :bin file)
@@ -91,13 +95,17 @@
   (setf *best* *orig*)
   (loop :for i :upfrom 0 :do
      (format t "fuzzing ~S~%" *best*)
-     (multiple-value-bind (fuzz-file errno) (fuzz variant)
+     (multiple-value-bind (fuzz-file errno) (fuzz *best*)
        (format t "found fuzz ~S(~d)~%" fuzz-file errno)
-       (shell "cp ~a ../../fuzz-~d" fuzz-file i)
+       (shell "cp ~a ../../store/fuzz-~d" fuzz-file i)
+       (setf *running* t)
        (setf (fitness *best*) (test fuzz-file *best*))
        (setf *population* (repeatedly *max-population-size* (copy *best*)))
        (prepeatedly 46
-         (setf *best* (evolve {test fuzz-file} :max-fit 10))
+         (let (solution)
+           (loop :until solution :do
+              (setf solution (ignore-errors (evolve {test fuzz-file} :max-fit 10))))
+           (setf *best* solution))
          (setf *running* nil))
-       (store *best* (format nil "best-~d.store" i))
-       (store *population* (format nil "pop-~d.store" i)))))
+       (store *best* (format nil "store/best-~d.store" i))
+       (store *population* (format nil "store/pop-~d.store" i)))))
