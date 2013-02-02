@@ -7,3 +7,4 @@ archive
 # executables
 bin/limit
 bin/fuzz
+stuff
