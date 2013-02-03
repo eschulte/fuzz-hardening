@@ -88,6 +88,16 @@
 ;;  - fitness cached in functions *not* saved w/individual
 ;;  - the test functions themselves note passing fuzzes and trigger a re-fuzz
 ;;  - accumulate collected fuzz tests, best passing individuals and pop
+;;
+;; or (the above option is probably better, cycle on reduced errno)
+;;
+;; - one single pop with many fuzz tests (each with associated error)
+;; - many mutate->test->incorporate->evict threads on this pop
+;; - save an alist of each fuzz test file and the associated error number
+;; - individual fitness = to
+;;   - 0 unless pass all 5 positive test cases
+;;   - + #fuzzes for each fuzz test passed
+;;   - + #fuzzes/2 for each fuzz test case with a lowered errno
 
 ;; Run -- this will just run forever
 #+run
