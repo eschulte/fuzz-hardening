@@ -40,7 +40,7 @@
               (values fuzz (parse-number err-str)))
             nil)))))
 
-(defmethod positive-tests ((variant software))
+(defun positive-tests (variant)
   (with-temp-file (file)
     (or (ignore-errors
           (phenome variant :bin file)
@@ -50,9 +50,10 @@
             (when (zerop exit)
               (parse-number stdout))))
         0)))
+(memoize #'positive-tests :key [#'genome #'car])
 
-(defmethod fuzz-test ((variant software) fuzz-spec)
-  "FUZZ-SPEC is a cons cell of (file . errno)."
+(defun fuzz-test (variant fuzz-spec)
+  "FUZZ-SPEC is an alist with :file and :errno elements."
   (with-temp-file (file)
     (or (ignore-errors
           (phenome variant :bin file)
@@ -61,22 +62,26 @@
             (declare (ignorable stderr stdout))
             (if (< exit (aget :errno fuzz-spec)) 1)))
         0)))
+(memoize #'fuzz-test :key (lambda-bind ((variant fuzz-spec)) (cons (genome variant) fuzz-spec)))
 
 (defun test (variant)
   (incf *fitness-evals*)
-  (+
-   ;; positive tests are worth more than all fuzz tests
-   (* (positive-tests variant) (length *fuzz-data*))
-   ;; run all previous fuzz tests
-   (reduce #'+ (mapcar {fuzz-test variant} (cdr *fuzz-data*)))
-   ;; run the latest fuzz test, and possibly add a new one
-   (let ((last (fuzz-test variant (car *fuzz-data*))))
-     (when (not (zerop last))
-       ;; save this variant associated with the fuzz test
-       (push (cons :solution variant) (car *fuzz-data*))
-       ;; generate a new fuzz test defeating this variant
-       (push (harden variant) *fuzz-data*))
-     last)))
+  (let* ((total-fuzz (length *fuzz-data*))
+         ;; score against regression tests
+         (regression-score (positive-tests variant))
+         ;; score against accumulated fuzz tests in `*fuzz-data*'
+         (old-fuzz (reduce #'+ (mapcar {fuzz-test variant} (cdr *fuzz-data*))))
+         (new-fuzz (fuzz-test variant (car *fuzz-data*)))
+         ;; total score and maximum possible score
+         (score (+ (* regression-score total-fuzz) old-fuzz new-fuzz))
+         (max-score (* (+ 5 1) total-fuzz)))
+    (prog1 score
+      ;; when we find the best possible, generate more fuzz tests
+      (when (= score max-score)
+        ;; save this variant associated with the fuzz test
+        (push (cons :solution variant) (car *fuzz-data*))
+        ;; generate a new fuzz test defeating this variant
+        (push (harden variant) *fuzz-data*)))))
 
 (defmethod harden ((variant software))
   (format t "fuzzing ~S~%" variant)
@@ -113,5 +118,5 @@
 (progn
   (setf *population* (repeatedly *max-population-size* (copy *orig*)))
   (push (harden *orig*) *fuzz-data*)
-  (loop :for i :below 48 :do
+  (loop :for i :below 32 :do
      (sb-thread:make-thread #'evolve :name (format nil "evolver-~d" i))))
