@@ -33,10 +33,12 @@
     (phenome variant :bin file)
     (multiple-value-bind (stdout stderr exit)
         (shell "~a ~a 2>&1" *fuzz* file)
-      (declare (ignorable stderr exit))
-      ;; TODO: error handling here
-      (bind (((fuzz err-str) (split-sequence #\Space stdout)))
-        (values fuzz (parse-number err-str))))))
+      (declare (ignorable stderr))
+      (let ((results (split-sequence #\Space stdout)))
+        (if (and (zerop exit) (= 2 (length results)))
+            (bind (((fuzz err-str) ))
+              (values fuzz (parse-number err-str)))
+            nil)))))
 
 (defmethod positive-tests ((variant software))
   (with-temp-file (file)
