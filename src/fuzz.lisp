@@ -1,20 +1,21 @@
 (require :software-evolution)
 (in-package :software-evolution)
 (mapc (lambda (pkg) (require pkg) (use-package pkg))
-      '(:cl-ppcre
-        :curry-compose-reader-macros
-        :eager-future2))
+      '(:cl-ppcre :curry-compose-reader-macros))
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (enable-curry-compose-reader-macros))
 
 (defvar *test* "../../bin/test-indent.sh"
   "The indent test script with fuzzing.")
 
-(defvar *fuzz-test* "../../test-fuzz.sh"
+(defvar *fuzz-test* "../../bin/test-fuzz.sh"
   "Script to run a variant on a fuzz file.")
 
 (defvar *fuzz* "../../bin/break-indent.sh"
   "Script to break indent with fuzzing.")
+
+(defvar *fuzz-data* nil
+  "List of alists holding fuzz files, associated errnos and passing variants.")
 
 ;; (from-file (make-instance 'cil) "indent/indent_comb.c")
 (defvar *orig* (from-file (make-instance 'asm) "indent_comb.s")
@@ -32,7 +33,8 @@
     (phenome variant :bin file)
     (multiple-value-bind (stdout stderr exit)
         (shell "~a ~a 2>&1" *fuzz* file)
-      (declare (ignorable stderr))
+      (declare (ignorable stderr exit))
+      ;; TODO: error handling here
       (bind (((fuzz err-str) (split-sequence #\Space stdout)))
         (values fuzz (parse-number err-str))))))
 
@@ -47,75 +49,67 @@
               (parse-number stdout))))
         0)))
 
-(defmethod fuzz-tests ((variant software) fuzz-file)
+(defmethod fuzz-test ((variant software) fuzz-spec)
+  "FUZZ-SPEC is a cons cell of (file . errno)."
   (with-temp-file (file)
     (or (ignore-errors
           (phenome variant :bin file)
           (multiple-value-bind (stdout stderr exit)
-              (shell "~a ~a ~a 2>&1" *fuzz-test* file fuzz-file)
-            (declare (ignorable stderr))
-            (if (zerop exit) 5)))
+              (shell "~a ~a ~a 2>&1" *fuzz-test* file (aget :file fuzz-spec))
+            (declare (ignorable stderr stdout))
+            (if (< exit (aget :errno fuzz-spec)) 1)))
         0)))
 
-(defun test (fuzz-file variant)
+(defun test (variant)
   (incf *fitness-evals*)
-  (+ (positive-tests variant)
-     (fuzz-tests variant fuzz-file)))
+  (+
+   ;; positive tests are worth more than all fuzz tests
+   (* (positive-tests variant) (length *fuzz-data*))
+   ;; run all previous fuzz tests
+   (reduce #'+ (mapcar {fuzz-test variant} (cdr *fuzz-data*)))
+   ;; run the latest fuzz test, and possibly add a new one
+   (let ((last (fuzz-test variant (car *fuzz-data*))))
+     (when (not (zerop last))
+       ;; save this variant associated with the fuzz test
+       (push (cons :solution variant) (car *fuzz-data*))
+       ;; generate a new fuzz test defeating this variant
+       (push (harden variant) *fuzz-data*))
+     last)))
 
-(defvar *best* nil
-  "Will hold that which defaults the fuzz.")
-
-(defmacro prepeatedly (n &body body)
-  "Return the result of running BODY N times in parallel."
-  (let ((loop-sym (gensym))
-        (result-sym (gensym)))
-    `(let ((,result-sym (loop :for ,loop-sym :upto ,n :collect (pexec ,@body))))
-       (map-into ,result-sym #'yield ,result-sym))))
-
-(defmethod harden ((variant cil))
+(defmethod harden ((variant software))
   (format t "fuzzing ~S~%" variant)
   (multiple-value-bind (fuzz-file errno) (fuzz variant)
     (format t "found fuzz ~S(~d)~%" fuzz-file errno)
-    (shell "cp ~a ../../" fuzz-file)
-    (prepeatedly 46
-      (setf *best* (evolve {test fuzz-file} :max-fit 10))
-      (setf *running* nil))
-    *best*))
+    ;; store the solution to the previous fuzz
+    (store variant (format nil "fuzz-data/~a.store" (length *fuzz-data*)))
+    ;; save the new fuzz file and errorno
+    (shell "cp ~a ../../fuzz-data/~a-fuzz.~a"
+           fuzz-file (length *fuzz-data*) errno)
+    ;; return the new fuzz file and errno
+    `((:file . ,fuzz-file) (:errno . ,errno))))
 
-;; TODO: rather than the below, implement a multi-threaded solution
-;;  - 1 population
-;;  - many threads of (new -> test -> incorporate -> evict)
-;;  - fitness cached in functions *not* saved w/individual
-;;  - the test functions themselves note passing fuzzes and trigger a re-fuzz
-;;  - accumulate collected fuzz tests, best passing individuals and pop
-;;
-;; or (the above option is probably better, cycle on reduced errno)
-;;
-;; - one single pop with many fuzz tests (each with associated error)
-;; - many mutate->test->incorporate->evict threads on this pop
-;; - save an alist of each fuzz test file and the associated error number
-;; - individual fitness = to
-;;   - 0 unless pass all 5 positive test cases
-;;   - + #fuzzes for each fuzz test passed
-;;   - + #fuzzes/2 for each fuzz test case with a lowered errno
+(defun evolve ()
+  "Run a thread of evolution; new -> test -> incorporate -> evict."
+  (flet ((tourny ()
+           (car (sort (loop :for i :below *tournament-size* :collect
+                         (random-elt *population*))
+                      *fitness-predicate*
+                      :key #'test))))
+    (loop :while *running* :do
+       ;; generate a new individual, and incorporate
+       (push (if (< (random 1.0) *cross-chance*)
+                 (crossover (tourny) (tourny))
+                 (mutate (copy (tourny))))
+             *population*)
+       ;; possibly reduce the population size below the max
+       (loop :while (and *max-population-size*
+                         (> (length *population*) *max-population-size*)) :do
+          (setf *population* (remove (random-elt *population*) *population*))))))
 
 ;; Run -- this will just run forever
 #+run
 (progn
-  (setf *best* *orig*)
-  (loop :for i :upfrom 0 :do
-     (format t "fuzzing ~S~%" *best*)
-     (multiple-value-bind (fuzz-file errno) (fuzz *best*)
-       (format t "found fuzz ~S(~d)~%" fuzz-file errno)
-       (shell "cp ~a ../../store/fuzz-~d" fuzz-file i)
-       (setf *running* t)
-       (setf (fitness *best*) (test fuzz-file *best*))
-       (setf *population* (repeatedly *max-population-size* (copy *best*)))
-       (prepeatedly 46
-         (let (solution)
-           (loop :until solution :do
-              (setf solution (ignore-errors (evolve {test fuzz-file} :max-fit 10))))
-           (setf *best* solution))
-         (setf *running* nil))
-       (store *best* (format nil "store/best-~d.store" i))
-       (store *population* (format nil "store/pop-~d.store" i)))))
+  (setf *population* (repeatedly *max-population-size* (copy *orig*)))
+  (push (harden *orig*) *fuzz-data*)
+  (loop :for i :below 48 :do
+     (sb-thread:make-thread #'evolve :name (format nil "evolver-~d" i))))
