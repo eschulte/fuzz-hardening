@@ -36,7 +36,7 @@
       (declare (ignorable stderr))
       (let ((results (split-sequence #\Space stdout)))
         (if (and (zerop exit) (= 2 (length results)))
-            (bind (((fuzz err-str) ))
+            (bind (((fuzz err-str) results))
               (values fuzz (parse-number err-str)))
             nil)))))
 
