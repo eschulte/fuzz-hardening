@@ -81,6 +81,10 @@
         ;; save this variant associated with the fuzz test
         (push (cons :solution variant) (car *fuzz-data*))
         ;; generate a new fuzz test defeating this variant
+        ;; TODO: harden may fail, need to
+        ;; - spawn a new worker thread in which to run this
+        ;; - restart harden if the first run fails
+        ;; - be able to pass new seeds to the fuzz-test script on each run
         (push (harden variant) *fuzz-data*)))))
 
 (defmethod harden ((variant software))
