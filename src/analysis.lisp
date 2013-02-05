@@ -12,10 +12,11 @@
 
 (defvar *fix* (aget :solution (lastcar *fuzz-data*)))
 
-(lastcar *fuzz-data*)
-
-;; ((:SOLUTION . #<ASM {10039B9473}>)
-;;  (:FILE . "/tmp/tmp.UrGErzkY9B")
-;;  (:ERRNO . 137))
-
-(phenome *fix*) ;; => "/tmp/filefwIOrq"
+#+run-fuzz-data
+(loop :for i :from 1 :to 11 :do
+   (let ((fix (restore (format nil "results/fuzz-data/~d.store" i))))
+     (with-temp-file (file)
+       (phenome fix :bin file)
+       (multiple-value-bind (stdout stderr exit)
+           (shell "~a < /tmp/fuzz-~d >/dev/null 2>/dev/null" file i)
+         (format t "~a ~a~%" i exit)))))
