@@ -1,31 +1,46 @@
 #!/bin/bash
 #
-# Usage: break-indent.sh [variant]
+# Usage: break.sh [variant]
 #  Generates fuzz variants until one breaks variant
 #
 VARIANT=$1
 BASE=$(dirname $0)
-FUZZ=$(dirname $0)/fuzz
-FUZZ_TEST=$(dirname $0)/test-fuzz.sh
-FUZZ_SIZE=1024 # 4096
+FUZZ=$BASE/fuzz
+LIMIT=$BASE/limit
 TRIALS=10000
 
-make_fuzz(){
-    local SEED=$1; local output=$(mktemp);
-    # $FUZZ -s $SEED -o $output $FUZZ_SIZE >/dev/null 2>/dev/null;
-    $FUZZ -s $SEED -o $output -a >/dev/null 2>/dev/null;
-    echo $output; }
-
 for SEED in $(seq $TRIALS);do
-    FUZZ_FILE=$(make_fuzz $SEED)
-    $FUZZ_TEST $VARIANT $FUZZ_FILE >/dev/null 2>/dev/null
-    RESULT=$?
-    if [ $RESULT -gt 1 ];then
-        echo "$FUZZ_FILE $RESULT"
-        exit 0
-        break
-    else
-        rm $FUZZ_FILE
-    fi
+    for NUM in 1000 10000 100000;do
+        for NULL in 0 1;do
+            for PRINTABLE in 0 1;do
+
+                # Generate Fuzz Output
+                OUT=$(mktemp)
+                if [ $NULL -eq 0 ];then
+                    if [ $PRINTABLE -eq 0 ];then
+                        $FUZZ $NUM -s $SEED       -o $OUT >/dev/null 2>/dev/null
+                    else
+                        $FUZZ $NUM -s $SEED -p    -o $OUT >/dev/null 2>/dev/null
+                    fi
+                else
+                    if [ $PRINTABLE -eq 0 ];then
+                        $FUZZ $NUM -s $SEED    -0 -o $OUT >/dev/null 2>/dev/null
+                    else
+                        $FUZZ $NUM -s $SEED -p -0 -o $OUT >/dev/null 2>/dev/null
+                    fi
+                fi
+
+                # Run the Tests
+                cat $OUT|$LIMIT $VARIANT >/dev/null 2>/dev/null
+                if [ $? -gt 1 ];then
+                    echo "$OUT $RESULT"
+                    exit 0
+                    break
+                else
+                    rm $OUT
+                fi
+            done
+        done
+    done
 done
 exit 1
