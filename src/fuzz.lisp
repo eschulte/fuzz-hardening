@@ -5,13 +5,26 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (enable-curry-compose-reader-macros))
 
+;; support for debugging output
+(defvar *debug-path* "fuzz.debug")
+
+(defun message (&rest args)
+  (flet ((say (stream)
+           (apply #'format (cons stream args))
+           (format stream " at ~S~%" (print-time nil))))
+    (with-open-file (out *debug-path* :direction :output
+                         :if-exists :append
+                         :if-does-not-exist :create)
+      (say out))
+    (say t)))
+
 (defvar *test* "../../bin/test-indent.sh"
   "The indent test script with fuzzing.")
 
 (defvar *fuzz-test* "../../bin/test-fuzz.sh"
   "Script to run a variant on a fuzz file.")
 
-(defvar *fuzz* "../../bin/break-indent.sh"
+(defvar *fuzz* "../../bin/break.sh"
   "Script to break indent with fuzzing.")
 
 (defvar *fuzz-data* nil
@@ -21,7 +34,7 @@
 (defvar *orig* (from-file (make-instance 'asm) "indent_comb.s")
   "The original program.")
 
-(defvar *work-dir* "sh-runner/work/"
+(defvar *work-dir* nil
   "Needed because SBCL chokes after too many shell outs.")
 
 (setf *max-population-size* (expt 2 10))
@@ -81,16 +94,12 @@
         ;; save this variant associated with the fuzz test
         (push (cons :solution variant) (car *fuzz-data*))
         ;; generate a new fuzz test defeating this variant
-        ;; TODO: harden may fail, need to
-        ;; - spawn a new worker thread in which to run this
-        ;; - restart harden if the first run fails
-        ;; - be able to pass new seeds to the fuzz-test script on each run
-        (push (harden variant) *fuzz-data*)))))
+        (sb-thread:make-thread (lambda () (push (harden variant) *fuzz-data*)))))))
 
 (defmethod harden ((variant software))
-  (format t "fuzzing ~S~%" variant)
+  (message "fuzzing ~S after ~S evals" (edits variant) *fitness-evals*)
   (multiple-value-bind (fuzz-file errno) (fuzz variant)
-    (format t "found fuzz ~S(~d)~%" fuzz-file errno)
+    (message "found fuzz ~S(~d)~%" fuzz-file errno)
     ;; store the solution to the previous fuzz
     (store variant (format nil "fuzz-data/~a.store" (length *fuzz-data*)))
     ;; save the new fuzz file and errorno
@@ -120,7 +129,9 @@
 ;; Run -- this will just run forever
 #+run
 (progn
+  (message "building the initial population")
   (setf *population* (repeatedly *max-population-size* (copy *orig*)))
   (push (harden *orig*) *fuzz-data*)
+  (message "kicking off the 32 evolution threads")
   (loop :for i :below 32 :do
      (sb-thread:make-thread #'evolve :name (format nil "evolver-~d" i))))
