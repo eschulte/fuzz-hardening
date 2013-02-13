@@ -1,3 +1,4 @@
+Stuff from mac os X fuzz paper,,
 expr,"Code from ftp://ftp.gnu.org/gnu/coreutils/
 Tests in coreutils-8.9/tests/misc/
 Clearly some tests for expr
@@ -20,3 +21,6 @@ No obvious tests",GNU
 ul,"Code from ftp://ftp.kernel.org/pub/linux/utils/util-linux/
 No apparent tests for ul (there are some for other utils)",BSD
 vi(ex)/vim,"Has test cases, should be easy to set up in genprog",http://vim.org
+,,
+Thing with exploits,,
+Wu-ftpd,,
