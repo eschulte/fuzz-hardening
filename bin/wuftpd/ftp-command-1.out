@@ -1,0 +1,12 @@
+total 14622
+-rw-r--r-- 1 root   90889 2008-11-18 12:30 config-2.6.27.5-117.fc10.i686
+-rw-r--r-- 1 root   90977 2008-11-18 12:17 config-2.6.27.5-117.fc10.i686.PAE
+drwxr-xr-x 3 root    1024 2008-12-05 12:15 efi
+drwxr-xr-x 2 root    1024 2008-12-15 22:32 grub
+-rw------- 1 root 3667495 2008-12-05 20:45 initrd-2.6.27.5-117.fc10.i686.img
+-rw------- 1 root 3644446 2008-12-05 12:16 initrd-2.6.27.5-117.fc10.i686.PAE.img
+drwx------ 2 root   12288 2008-12-05 12:00 lost+found
+-rw-r--r-- 1 root 1089949 2008-11-18 12:30 System.map-2.6.27.5-117.fc10.i686
+-rw-r--r-- 1 root 1106709 2008-11-18 12:17 System.map-2.6.27.5-117.fc10.i686.PAE
+-rwxr-xr-x 1 root 2570960 2008-11-18 12:30 vmlinuz-2.6.27.5-117.fc10.i686
+-rwxr-xr-x 1 root 2615056 2008-11-18 12:17 vmlinuz-2.6.27.5-117.fc10.i686.PAE
