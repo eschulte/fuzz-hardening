@@ -1,26 +1,26 @@
-Stuff from mac os X fuzz paper,,
+Stuff from mac os X fuzz paper,,,Fuzzing results?
 expr,"Code from ftp://ftp.gnu.org/gnu/coreutils/
 Tests in coreutils-8.9/tests/misc/
 Clearly some tests for expr
-Not sure how to run them yet",GNU coreutils
+Not sure how to run them yet",GNU coreutils,Seems robust
 groff,"Code from ftp://ftp.gnu.org/gnu/groff/
-No obvious tests",FSF
+No obvious tests",FSF,
 zic,"Code from http://web.mit.edu/freebsd/head/contrib/tzcode/zic/
 (maybe not best source)
-No obvious tests",Glibc?
+No obvious tests",Glibc?,
 zsh,"Code from http://sourceforge.net/projects/zsh/files/zsh-dev/4.3.17/
-Has 39 tests that we can run",
+Has 39 tests that we can run",,Possible hanging?
 as,"Code from http://ftp.gnu.org/gnu/binutils/
 Some tests in binutils-2.23/binutils/testsuite
-Not clear how to run any of the tests",From GNU binutils
-Indent,Already set up for genprog,
+Not clear how to run any of the tests",From GNU binutils,Seems robust
+Indent,Already set up for genprog,,fuzzing successful
 nroff,"http://heirloom.sourceforge.net/doctools.html
-No obvious tests",GNU
+No obvious tests",GNU,
 ditroff/troff,"http://heirloom.sourceforge.net/doctools.html
-No obvious tests",GNU
+No obvious tests",GNU,
 ul,"Code from ftp://ftp.kernel.org/pub/linux/utils/util-linux/
-No apparent tests for ul (there are some for other utils)",BSD
-vi(ex)/vim,"Has test cases, should be easy to set up in genprog",http://vim.org
-,,
-Thing with exploits,,
-Wu-ftpd,,
+No apparent tests for ul (there are some for other utils)",BSD,Seems robust
+vi(ex)/vim,"Has test cases, should be easy to set up in genprog",http://vim.org,"ptyjig not working, skipping for now"
+,,,
+Thing with exploits,,,
+Wu-ftpd,,,
