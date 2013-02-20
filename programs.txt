@@ -1,0 +1,12 @@
+program	status	code/version	notes on tests
+expr	terri-cant	ftp://ftp.gnu.org/gnu/coreutils/	Tests in coreutils-8.9/tests/misc/ Not sure how to run them yet, seems robust
+groff	broke	1.22.2	No obvious test suite
+zic	not-tried	http://web.mit.edu/freebsd/head/contrib/tzcode/zic/	No obvious tests
+zsh	in-progress	http://sourceforge.net/projects/zsh/files/zsh-dev/4.3.17/	Has 39 tests that we can run
+as	not-tried	http://ftp.gnu.org/gnu/binutils/	Some tests in binutils-2.23/binutils/testsuite
+indent	broke	genprog	genprog
+nroff	not-tried	http://heirloom.sourceforge.net/doctools.html	No obvious tests
+ditroff/troff	not-tried	http://heirloom.sourceforge.net/doctools.html	No obvious tests
+ul	eric-cant	2.22.2	No apparent tests for ul
+vi(ex)/vim	terri-cant	?	Has test cases ptyjig not working skipping for now
+Wu-ftpd	in-progress	genprog	genprog
