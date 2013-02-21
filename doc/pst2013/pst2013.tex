@@ -348,6 +348,12 @@
 \hyphenation{op-tical net-works semi-conduc-tor}
 
 
+% tikz
+\usepackage{tikz}
+\usetikzlibrary{arrows,decorations,decorations.text,decorations.pathreplacing,shapes}
+\tikzstyle{box} = [rectangle, draw, text width=8em]
+\tikzstyle{thread} = [rectangle, draw, minimum width=1em, minimum height=1em, fill=blue!40]
+
 \begin{document}
 %
 % paper title
@@ -413,9 +419,12 @@
 
 \begin{abstract}
 %\boldmath
-Hardening software to make it more robust and able to withstand atatcks can be
+Hardening software to make it more robust and able to withstand attacks can be
 very challenging.  This paper explores a method for automated hardening by
-combing an automated bug-finding technique with automated software repair.
+combing an automated bug-finding technique with automated software
+repair in a closed loop automated software hardening tool.  We
+demonstrate the effectiveness of this approach through proactive
+defeat of withheld real-world exploits.
 \end{abstract}
 % IEEEtran.cls defaults to using nonbold math in the Abstract.
 % This preserves the distinction between vectors and scalars. However,
@@ -452,9 +461,52 @@ developers already can find more bugs than they realistically have time to fix
 \cite{devshavetoomanybugs}.  \FIXME{blah blah about bugs, use citations from
 previous genprog papers.}
 
-\subsection{Subsection Heading Here}
+\subsection{Technical Approach}
 
+\begin{figure*}[htb]
+  \centering
+  \begin{tikzpicture}[scale=0.5]
+    \node [box, fill=red!20, text width=5em] (fuzz) at (6,2) {Fuzz Test\\Generator};
+    \node [text width=14em] (genprog) at (-8,-3) {Threads of Program Mutation\\\centerline{and Evaluation}};
+    \node [box, circle, fill=green!20] (pop) at (-2,-12) {Population of\\ Program Variants};
+    \node [box, text width=11em, fill=orange!20] (test) at (6, -6)
+    {Test Suite
+      \begin{itemize}
+      \item regression tests
+      \item fuzz test 1
+      \item fuzz test 2
+      \item \ldots{}
+      \end{itemize}};
+    \node [cloud, draw,cloud puffs=10,cloud puff arc=120, aspect=2, inner ysep=1em, minimum width=16em, minimum height=12em] at (-8,-3.5) {};
+    \node [thread] (t1) at (-9,-6.5) {};
+    \node [thread] (t2) at (-7,-6) {};
+    \node [thread] (t3) at (-6,-5) {};
+    \node [thread] (t4) at (-10,-4.5) {};
+    \node [thread] (t5) at (-8.5,-5.5) {};
 
+    % population <-> threads
+    \draw [->,very thick,bend left] (pop.west) to (t1);
+    \draw [->,very thick,bend left] (pop.west) to (t2);
+    \draw [->,very thick,bend left] (t5) to (pop.north);
+    \draw [->,very thick,bend left] (t2.east) to (pop.north west);
+    % threads <-> test
+    \draw [->,very thick,bend left] (t3) to (test.west);
+    \draw [->,very thick,bend left] (test.west) to (t3);
+    % test <-> fuzz generator
+    \draw [->,very thick,bend left] (test.north west) to (fuzz.south west);
+    \draw [->,very thick,bend left] (fuzz.south east) to (test.north east);
+
+    % arrow labels
+    \node [text width=6em, font=\small] at (-10,-10) {Tournament\\\centerline{Selection}};
+    \node [text width=6em, font=\small] at (-10,-10) {Tournament\\\centerline{Selection}};
+    \node [text width=5em, font=\small] at (-0.5,-5.5) {Fitness\\\centerline{Evaluation}};
+    \node [text width=5em, font=\small] at (1,0) {Program $p$ Passing all Tests};
+    \node [text width=7em, font=\small] at (12.5,0) {Fuzz Test\\Failing\\Program $p$};
+  \end{tikzpicture}
+  
+  \caption{Overview of Fuzz Hardening framework}
+  \label{fig:overview}
+\end{figure*}
 
 % An example of a floating figure using the graphicx package.
 % Note that \label must occur AFTER (or within) \caption.
