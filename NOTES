@@ -33,3 +33,6 @@
 :  #<unused argument>
 :  #<STANDARD-GENERIC-FUNCTION FUZZ (1)>
 :  NIL)
+* TODO generating a test suite for groff
+Running should look something like the following.
+: groff -t -mm -man dissemination.mm -Tascii
