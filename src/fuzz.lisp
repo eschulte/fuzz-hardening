@@ -14,13 +14,13 @@
       (say out))
     (say t)))
 
-(defvar *test* "../../bin/test-indent.sh"
+(defvar *test* "./bin/test-indent.sh"
   "The indent test script with fuzzing.")
 
-(defvar *fuzz-test* "../../bin/test-fuzz.sh"
+(defvar *fuzz-test* "./bin/test-fuzz.sh"
   "Script to run a variant on a fuzz file.")
 
-(defvar *fuzz* "../../bin/break.sh"
+(defvar *fuzz* "./bin/break.sh"
   "Script to break indent with fuzzing.")
 
 (defvar *fuzz-data* nil
