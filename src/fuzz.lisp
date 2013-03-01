@@ -1,9 +1,5 @@
 (require :software-evolution)
 (in-package :software-evolution)
-(mapc (lambda (pkg) (require pkg) (use-package pkg))
-      '(:cl-ppcre :curry-compose-reader-macros))
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (enable-curry-compose-reader-macros))
 
 ;; support for debugging output
 (defvar *debug-path* "fuzz.debug")
@@ -63,7 +59,7 @@
             (when (zerop exit)
               (parse-number stdout))))
         0)))
-(memoize #'positive-tests :key [#'genome #'car])
+(memoize #'positive-tests :key (compose #'genome #'car))
 
 (defun fuzz-test (variant fuzz-spec)
   "FUZZ-SPEC is an alist with :file and :errno elements."
@@ -83,7 +79,7 @@
          ;; score against regression tests
          (regression-score (positive-tests variant))
          ;; score against accumulated fuzz tests in `*fuzz-data*'
-         (old-fuzz (reduce #'+ (mapcar {fuzz-test variant} (cdr *fuzz-data*))))
+         (old-fuzz (reduce #'+ (mapcar (curry fuzz-test variant) (cdr *fuzz-data*))))
          (new-fuzz (fuzz-test variant (car *fuzz-data*)))
          ;; total score and maximum possible score
          (score (+ (* regression-score total-fuzz) old-fuzz new-fuzz))
