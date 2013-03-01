@@ -33,7 +33,7 @@
 (defvar *work-dir* nil
   "Needed because SBCL chokes after too many shell outs.")
 
-(setf *max-population-size* (expt 2 10))
+(setf *max-population-size* (expt 2 8))
 
 (setf *tournament-size* 2)
 
