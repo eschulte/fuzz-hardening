@@ -53,7 +53,16 @@ developers already can find more bugs than they realistically have time to fix
 \cite{devshavetoomanybugs}.  \FIXME{blah blah about bugs, use citations from
 previous genprog papers.}
 
-\subsection{Technical Approach}
+However, it is now possible to use automted repair to fix bugs rather than
+relying on human programmers.  This has proven to be very competitive, with one
+study finding that bugs could be repaired for approximately \$8 per bug
+\cite{manybugs}. \FIXME{some paragraph about genprog here, or maybe later?}
+
+So we have an automated way to find bugs and an automated way to fix them: is it
+possible to combine the two to proactively ``harden" software? 
+
+
+\section{Technical Approach}
 
 \begin{figure*}[htb]
   \centering
@@ -99,6 +108,29 @@ previous genprog papers.}
   \caption{Overview of Fuzz Hardening framework}
   \label{fig:overview}
 \end{figure*}
+
+\subsection{Fuzz Testing}
+
+Fuzz testing is a fairly mature technique that can range from the original work
+using purely random characters \cite{Miller1990,Miller1995} to input that is
+very specifically tweaked from a template or grammar \cite{modern,fuzz,papers}, or
+randomized input that includes mouse or window events \cite{Miller2006}.
+
+For our experiments, we've started with the most basic fuzz tester,
+as provided by Miller as fuzz-2001 \cite{Millerfuzzwebsite}, which generates
+different lengths of files filled with randomized characters.   The system has
+been designed so that this piece can be replaced with a more advanced fuzz
+tester if one is available for the program in question.  However, we were
+curious if even a fairly modest fuzzer could be used to produce useful software
+hardening, and this is the most basic of those available.
+
+\subsection{Automated Software Repair}
+
+For the automated software repair part of the system, we have used a lisp
+implementation of Genprog \cite{genprogpapers}.   This particular version of
+genprog was easier to script for repeated repairs.  \FIXME{more here}
+
+
 
 \section{Conclusion}
 The conclusion goes here.
