@@ -1,6 +1,43 @@
 #                                                          -*- org -*-
 
-* TODO errors running on real
+* Notes
+** Fuzz Testers
+Both Spike and Flayer look like good options, with Spike being the
+simpler and Flayer the more powerful.
+
+*** Promising options include
+- spike :: used in genprog journal paper, looks like a standard tool
+           kit for block based fuzzing (smarter than fuzz2001)
+- Flayer :: Google, feedback driven fuzzing, looks /state of the art/
+            uses some stuff (e.g., pin) I use for optimization
+            http://static.usenix.org/event/woot07/tech/full_papers/drewry/drewry_html/
+
+*** Types of fuzzers
+- block based fuzzing
+  - spike (used in the genprog journal paper)
+- model inference assisted fuzzers
+  - PROTOS
+- feedback driven fuzzing?
+  - using feedback from e.g., gcc's =-finstrument-functions=
+  - bunny-the-fuzzer (lcamtuf)
+  - EFS (DeMott)
+  - Flayer or "Deep Cover"
+    - Google: sub-instruction coverage
+    - published at USENIX WOOT
+    - since extended by others
+    - Tavis Ormandy (taviso@google.com)
+- constraint solving
+  - SAGE (Microsoft)
+  - fuzzgrind
+
+*** Fuzz reading
+- http://pentest.cryptocity.net/fuzzing/
+- file:data/sample_chapter_from_fuzzing.pdf
+- file:data/The_Evolving_Art_of_Fuzzing_paper.pdf
+- file:data/making_software_dumber.pdf
+
+* Tasks [0/2]
+** TODO errors running on real
 : fuzzing #<CIL {102DFE18E3}>
 : found fuzz "/tmp/tmp.xNVHStOJzl"(137)
 : Caught a weird error: #<END-OF-FILE {1002AB54F3}>
@@ -33,6 +70,7 @@
 :  #<unused argument>
 :  #<STANDARD-GENERIC-FUNCTION FUZZ (1)>
 :  NIL)
-* TODO generating a test suite for groff
+
+** TODO generating a test suite for groff
 Running should look something like the following.
 : groff -t -mm -man dissemination.mm -Tascii
