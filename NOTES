@@ -75,3 +75,10 @@ simpler and Flayer the more powerful.
 ** TODO generating a test suite for groff
 Running should look something like the following.
 : groff -t -mm -man dissemination.mm -Tascii
+
+** DONE fuzz tests for groff                                         :ATTACH:
+   :PROPERTIES:
+   :Attachments: tmp.5PU3t8xTKi
+   :ID:       87fda3c2-a0da-41e9-9198-37bcde807adf
+   :END:
+Able to generate breaking input (first attached).
