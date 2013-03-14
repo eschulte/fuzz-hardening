@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Usage: break.sh [variant] [options...]
-#  Generates fuzz variants until one breaks variant
+#  Generates fuzz inputs until one breaks variant
 #
 # Options:
 #  -h,--help          show help information and exit
@@ -18,7 +18,7 @@ HELP_TEXT=$(cat "$0" \
     |cut -c3-)
 BASE=$(dirname $0)
 FUZZ=$BASE/fuzz
-LIMIT=$BASE/limit
+if [ -z "$LIMIT" ];then LIMIT=$BASE/limit;fi
 TRIALS=10000
 
 ## Option Parsing
@@ -35,7 +35,6 @@ while [ $# -gt 0 ];do
     esac
     shift
 done
-VARIANT=$1;
 
 ## Main Loop
 for SEED in $(seq $TRIALS);do
@@ -60,7 +59,7 @@ for SEED in $(seq $TRIALS);do
                 fi
 
                 # Run the Tests
-                cat $OUT|$LIMIT $VARIANT >/dev/null 2>/dev/null
+                cat $OUT|$LIMIT $@ >/dev/null 2>/dev/null
                 if [ $? -gt 1 ];then
                     echo "$OUT $RESULT"
                     exit 0
