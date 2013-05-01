@@ -8,5 +8,4 @@ archive
 bin/limit
 bin/limit60
 bin/fuzz
-stuff
 results
