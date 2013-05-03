@@ -1,6 +1,7 @@
 \documentclass[conference]{IEEEtran}
 \usepackage{color}
 \usepackage{tikz}
+\usepackage{pstricks}
 
 % Terri's simple FIXME macro
 \newcommand{\FIXME}[1]{\textcolor{red}{FIXME: #1}}
@@ -53,7 +54,7 @@ developers already can find more bugs than they realistically have time to fix
 \cite{devshavetoomanybugs}.  \FIXME{blah blah about bugs, use citations from
 previous genprog papers.}
 
-However, it is now possible to use automted repair to fix bugs rather than
+However, it is now possible to use automated repair to fix bugs rather than
 relying on human programmers.  This has proven to be very competitive, with one
 study finding that bugs could be repaired for approximately \$8 per bug
 \cite{manybugs}. \FIXME{some paragraph about genprog here, or maybe later?}
@@ -111,18 +112,29 @@ possible to combine the two to proactively ``harden" software?
 
 \subsection{Fuzz Testing}
 
-Fuzz testing is a fairly mature technique that can range from the original work
-using purely random characters \cite{Miller1990,Miller1995} to input that is
-very specifically tweaked from a template or grammar \cite{modern,fuzz,papers}, or
-randomized input that includes mouse or window events \cite{Miller2006}.
+Fuzz testing is a software testing technique used to find bugs due to unexpected
+input.  Fuzz testers range from the original work using purely random characters
+\cite{Miller1990,Miller1995} to input that is very specifically tweaked from a
+template or grammar \cite{modern,fuzz,papers}, or even randomized input that
+includes mouse or window events \cite{Miller2006}.
 
-For our experiments, we've started with the most basic fuzz tester,
+For our experiments, we started with the most basic fuzz tester,
 as provided by Miller as fuzz-2001 \cite{Millerfuzzwebsite}, which generates
-different lengths of files filled with randomized characters.   The system has
-been designed so that this piece can be replaced with a more advanced fuzz
-tester if one is available for the program in question.  However, we were
-curious if even a fairly modest fuzzer could be used to produce useful software
-hardening, and this is the most basic of those available.
+different lengths of files filled with randomized characters.  These early
+experiments explored whether even a fairly modest fuzzer could be used to
+produce useful software hardening, and this is the most basic fuzz tester
+available.
+
+Later experiments used a more advanced block-based network fuzzer called SPIKE
+\cite{SPIKE}.  Rather than generating purely randomized data, SPIKE uses a block
+structure that can be used to give it a notion of syntax for communicating.
+The fuzzer modifies variable areas of the protocol while leaving the essential
+command structure intact.  In addition, the parts that are fuzzed use not only
+random data, but also some heuristically chosen strings that often cause
+problems in software. 
+
+\FIXME{More about possible fuzz testers for future work, incl. Flayer}
+
 
 \subsection{Automated Software Repair}
 
@@ -130,10 +142,75 @@ For the automated software repair part of the system, we have used a lisp
 implementation of Genprog \cite{genprogpapers}.   This particular version of
 genprog was easier to script for repeated repairs.  \FIXME{more here}
 
+\subsection{Automated hardening procedure}
+
+\begin{figure}[htb]
+  \caption{Automated Hardening Procedure}
+  \label{fig:flowchart}
+  \centering
+    \includegraphics[width=0.5\textwidth]{automated-hardening-simple.eps}
+%\input{automated-hardening-simple.tex}
+\end{figure}
+
+
+Figure~\ref{fig:flowchart} shows the procedure used for automated hardening.  We
+start with the fuzz generator, which is used to produce a candidate input.
+This candidate output is then run as input to the program which we are
+attempting to harden.  If the program passes on that input, we go back to the
+fuzz generator and continue to generate candidates until we get one that fails.
+In this case, a failing candidate input is one that causes the program to hang
+or crash.  Once a failing candidate input is found, genprog is engaged to find a
+new version of the program that does not fail on the candidate input.  Genprog
+is run until it finds a solution, at which point that solution replaces the
+program being hardened and we create a new test case using the previously
+failing input.  We can then return to the beginning of the process and start
+finding a new candidate input.
+
+There are a couple of places which require timeouts: 
+
+\begin{enumerate}
+\item At the candidate input
+generation phase, we need to set a limit on the amount of time spent trying to
+find a new failing input.  If no failing inputs are found within that time,
+terminate the run on the assumption that the program has been sufficiently
+hardened against the fuzz tester.
+
+\item At the genprog phase, it is possible that genprog will be unable to find
+a repair for this failure.  Again, a timeout can be set so that genprog will be
+terminated.  This could be after a given amount of time, generations of the
+program population, or number of random seeds used to initiatlize genprog.  At
+this point, that candidate input could be given to a human programmer to
+analyse, while the system returns to finding new candidate inputs that may be
+more repairable.
+\end{enumerate}
+
+Our choice of what it means to ``fail" a test is fairly simplistic: we assume a
+failure means a crash or hang of the program.  This is appropriate for some
+types of program, such as server software where a crash or hang would cause the
+server to become unresponsive to other requests.   For other types of programs
+other failure criteria might be necessary. 
+
+Note also that it is very hard to determine an optimal solution from a failing
+fuzzed input.  The ASH system attempts to produce a new program that does not
+crash, but it might be more appropriate for the system to generate an
+appropriate error message, log the attempt to input malformed data, or other
+action.  If this action can be predicted in advance, such as a standard error
+message that needs to be returned, it is possible to add this desired action
+into the test cases generated by ASH and sent to genprog so it will generate a
+program behaves as desired.   Unfortunately, this may not generate very
+informative messages and behaviours, but it could be "good enough" until a human
+programmer can create a more informed test case or patch to the program.
+
 
 
 \section{Conclusion}
-The conclusion goes here.
+We have produced a system that combines the bug-finding utility of a fuzz tester
+with the patch-finding ability of automated repair system genprog.
+
+
+\section{Availability}
+\FIXME{Is Eric's code released?  We should release our linking scripts and
+SPIKE scripts in some useful way.}
 
 \section*{Acknowledgment}
 
