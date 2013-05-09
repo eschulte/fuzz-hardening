@@ -36,6 +36,14 @@ simpler and Flayer the more powerful.
 - file:data/The_Evolving_Art_of_Fuzzing_paper.pdf
 - file:data/making_software_dumber.pdf
 
+** LLVM and Klee
+Look into klee, it may be combined with the LLVM representation to
+select and specifically fuzz variables.
+
+See
+- http://klee.llvm.org/Tutorial-1.html
+- http://klee.llvm.org/Tutorial-2.html
+
 * Tasks [1/4]
 ** TODO run indentation fuzz with times of subsequent fuzzes
 ** TODO errors running on real
