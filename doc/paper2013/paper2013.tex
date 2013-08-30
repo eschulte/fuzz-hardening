@@ -45,6 +45,24 @@ defeat of withheld real-world exploits.
 \end{abstract}
 
 \section{Introduction}
+Writing secure software is a challenging task.  Programmers have a variety of
+tools at hand, from top ten lists to help focus security efforts (e.g. The OWASP
+top ten for web security \cite{owasp_top_10_2013}) to entire secure
+software development processes (e.g. Microsoft's Security Development Lifecycle
+\cite{microsoft_sdl}).  But despite greater understanding of the problems and
+solutions, vulnerabilities continue to be discovered in all types of software.
+
+If we cannot reliably produce secure software on the first try, can we at least
+take an existing program which is less than perfectly secure and make it secure?
+
+It would be convenient if developers and users could take an existing piece of
+software and put it in some sort of black box that then outputted a version of
+the software that was bug and vulnerability-free.  Unfortunately, our "black
+box" at the moment would be very expensive: the closest analog involves hiring
+an entire security firm to replace the black box.  
+
+%ddBut 
+
 In their 2006 paper, Miller et al were disappointed to find that the robustness
 of command line utilities on MacOS in 2006 than the Linux/GNU tools of 1995
 \cite{Miller2006}.  While fuzz testing is a well-established technique for
@@ -218,6 +236,6 @@ The authors would like to thank...
 - DARPA
 
 \bibliographystyle{IEEEtran}
-\bibliography{pst2013.bib}
+\bibliography{paper2013.bib}
 
 \end{document}
