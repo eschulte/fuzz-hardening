@@ -9,3 +9,11 @@ bin/limit
 bin/limit60
 bin/fuzz
 results
+
+# documentation
+**.el
+**.aux
+**.bbl
+**.blg
+**.log
+**.pdf
