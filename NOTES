@@ -2,8 +2,13 @@
 
 * Notes
 ** Fuzz Testers
-Both Spike and Flayer look like good options, with Spike being the
-simpler and Flayer the more powerful.
+- Spike -- simpler
+- Flayer -- powerful but maybe harder to setup
+- [[http://code.google.com/p/american-fuzzy-lop/][American-fuzzy-lop]] -- newer
+
+*** automated test case generation techniques
+- KLEE :: based on LLVM, has run over all coreutils
+- Crest uses Cil :: can't handle floats or structs
 
 *** Promising options include
 - spike :: used in genprog journal paper, looks like a standard tool
