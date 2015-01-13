@@ -1,6 +1,9 @@
 #                                                          -*- org -*-
 
 * Notes
+** Using most basic fuzzer
+http://ftp.cs.wisc.edu/paradyn/fuzz/fuzz-2001/
+
 ** Fuzz Testers
 - Spike -- simpler
 - Flayer -- powerful but maybe harder to setup
